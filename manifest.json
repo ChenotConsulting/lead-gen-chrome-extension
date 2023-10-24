@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn LeadGen Assistant",
+  "version": "2.0.0",
+  "permissions": [
+    "tabs"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.linkedin.com/*"],
+      "css": ["styles.css"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["config/config.json"],
+      "matches": ["https://www.linkedin.com/*"]
+    }
+  ],
+  "action": {
+    "default_title": "LinkedIn LeadGen Assistant"
+  }
+}
