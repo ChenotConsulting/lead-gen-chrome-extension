@@ -1,6 +1,81 @@
 
 var openAIApiKey = ''
 
+function loadCss() {
+    // Add CSS styles for the modal
+    var style = document.createElement('style');
+    style.textContent = `
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        background-color: #fafaff;
+        color: #393e46;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 500px;
+        border-radius: 8px;
+        font-family: Roboto, Helvetica;
+    }
+
+    .loading {
+        text-align: center;
+        text-decoration: none;
+        font-size: 16px;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .btn {
+        background-color: #8dbf8e;
+        color: #f2ede3;
+        border: none;
+        padding: 10px 20px;
+        margin: 10px 0px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+    }  
+    
+    .btn:hover {
+        background-color: #3e829a;
+    }
+    
+    .message {
+        margin: 0 0 0 10px;
+    }
+    `
+
+    // Append the style element to the document head
+    document.head.appendChild(style)
+}
+
 function updateModalContent(message) {
     var contentElement = document.getElementById('content')
     contentElement.innerHTML = message
@@ -62,6 +137,52 @@ function getLinkedInMessage(name, title, about){
     })
 } 
 
+function startMessageProcess(modal, modalContent, name, title, about){
+    // Create the modal elements dynamically    
+    var content = document.createElement('p')
+    content.innerHTML = 'Generating message. Please wait a few seconds...';
+    content.id = 'content'
+
+    var copyBtn = document.createElement('button')
+    copyBtn.textContent = 'Copy'
+    copyBtn.className = 'btn'
+    copyBtn.addEventListener('click', function() {
+        const contentElement = document.getElementById('content')
+
+        navigator.clipboard.writeText(contentElement.innerHTML)
+        .then(function() {
+            console.log('Content copied to clipboard!')
+        })
+        .catch(function(error) {
+            console.error('Failed to copy content: ', error)
+        })
+    })
+
+    var msgBtn = document.createElement('button')
+    msgBtn.textContent = 'Message'
+    msgBtn.className = 'btn message'
+    msgBtn.addEventListener('click', function() {
+        const messageButton = document.evaluate("//button[contains(@aria-label, 'Message')]", document, null, XPathResult.ANY_TYPE, null).iterateNext().click()
+
+        // setTimeout(function() {
+            // UNTIL I CAN FIGURE OUT A WAY TO PROPERLY FORMAT THE TEXT I WILL SKIP THIS
+            // var message = document.getElementById('content').innerHTML
+            // var messageInput = document.evaluate("//div[contains(@class, '__contenteditable')]//p", document, null, XPathResult.ANY_TYPE, null).iterateNext()
+            // messageInput.textContent = message
+            // modal.style.display = 'none'
+        // }, 1000)
+        
+        modal.style.display = 'none'
+    })
+
+    // Append the elements to build the modal
+    modalContent.appendChild(content)
+    modalContent.appendChild(copyBtn)
+    modalContent.appendChild(msgBtn)
+
+    const message = getLinkedInMessage(name, title, about)
+}
+
 function openModal(name, title, about) {
     // Create the modal elements dynamically
     var modal = document.createElement('div')
@@ -77,117 +198,23 @@ function openModal(name, title, about) {
         modal.style.display = 'none'
     })
 
-    var content = document.createElement('p')
-    content.innerHTML = 'Loading...';
-    content.id = 'content'
-
-    var copyBtn = document.createElement('button')
-    copyBtn.textContent = 'Copy'
-    copyBtn.className = 'copy'
-    copyBtn.addEventListener('click', function() {
-        const contentElement = document.getElementById('content')
-
-        navigator.clipboard.writeText(contentElement.innerHTML)
-        .then(function() {
-            console.log('Content copied to clipboard!')
-        })
-        .catch(function(error) {
-            console.error('Failed to copy content: ', error)
-        })
-    })
-
-    var msgBtn = document.createElement('button')
-    msgBtn.textContent = 'Message'
-    msgBtn.className = 'copy message'
-    msgBtn.addEventListener('click', function() {
-        const messageButton = document.evaluate("//button[contains(@aria-label, 'Message')]", document, null, XPathResult.ANY_TYPE, null).iterateNext().click()
-
-        setTimeout(function() {
-            var message = document.getElementById('content').innerHTML
-            var messageInput = document.evaluate("//div[contains(@class, '__contenteditable')]//p", document, null, XPathResult.ANY_TYPE, null).iterateNext()
-            messageInput.textContent = message
-            modal.style.display = 'none'
-        }, 1000)        
+    var startBtn = document.createElement('button')
+    startBtn.textContent = 'Generate Message'
+    startBtn.className = 'btn'
+    startBtn.addEventListener('click', function() {
+        modalContent.removeChild(startBtn)
+        startMessageProcess(modal, modalContent, name, title, about)
     })
 
     // Append the elements to build the modal
     modalContent.appendChild(closeBtn)
-    modalContent.appendChild(content)
-    modalContent.appendChild(copyBtn)
-    modalContent.appendChild(msgBtn)
+    modalContent.appendChild(startBtn)
     modal.appendChild(modalContent)
     document.body.appendChild(modal)
-
-    // Add CSS styles for the modal
-    var style = document.createElement('style');
-    style.textContent = `
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 300px;
-    }
-
-    .loading {
-        text-align: center;
-        text-decoration: none;
-        font-size: 16px;
-    }
-
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    .close:hover,
-    .close:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    .copy {
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        margin: 10px 0px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        border-radius: 10px;
-        cursor: pointer;
-    }      
-    
-    .message {
-        margin: 0 0 0 10px;
-    }
-    `
-
-    // Append the style element to the document head
-    document.head.appendChild(style)
+    loadCss()
 
     // Open the modal
     modal.style.display = 'block'
-
-    const message = getLinkedInMessage(name, title, about)
 } 
 
 window.onload = function(event) {
