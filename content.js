@@ -70,6 +70,16 @@ function loadCss() {
     .message {
         margin: 0 0 0 10px;
     }
+    
+    .new_section {
+        padding: 20px;
+    }
+
+    .icon {
+        float: left;
+        margin-right: 10px;
+        height: 32px;
+    }
     `
 
     // Append the style element to the document head
@@ -137,7 +147,21 @@ function getLinkedInMessage(name, title, about){
     })
 } 
 
-function startMessageProcess(modal, modalContent, name, title, about){
+function openModal(name, title, about) {
+    // Create the modal elements dynamically
+    var modal = document.createElement('div')
+    modal.className = 'modal'
+
+    var modalContent = document.createElement('div')
+    modalContent.className = 'modal-content'
+
+    var closeBtn = document.createElement('span')
+    closeBtn.className = 'close'
+    closeBtn.innerHTML = '&times;'
+    closeBtn.addEventListener('click', function() {
+        modal.style.display = 'none'
+    })
+
     // Create the modal elements dynamically    
     var content = document.createElement('p')
     content.innerHTML = 'Generating message. Please wait a few seconds...';
@@ -176,45 +200,17 @@ function startMessageProcess(modal, modalContent, name, title, about){
     })
 
     // Append the elements to build the modal
+    modalContent.appendChild(closeBtn)
     modalContent.appendChild(content)
     modalContent.appendChild(copyBtn)
     modalContent.appendChild(msgBtn)
-
-    const message = getLinkedInMessage(name, title, about)
-}
-
-function openModal(name, title, about) {
-    // Create the modal elements dynamically
-    var modal = document.createElement('div')
-    modal.className = 'modal'
-
-    var modalContent = document.createElement('div')
-    modalContent.className = 'modal-content'
-
-    var closeBtn = document.createElement('span')
-    closeBtn.className = 'close'
-    closeBtn.innerHTML = '&times;'
-    closeBtn.addEventListener('click', function() {
-        modal.style.display = 'none'
-    })
-
-    var startBtn = document.createElement('button')
-    startBtn.textContent = 'Generate Message'
-    startBtn.className = 'btn'
-    startBtn.addEventListener('click', function() {
-        modalContent.removeChild(startBtn)
-        startMessageProcess(modal, modalContent, name, title, about)
-    })
-
-    // Append the elements to build the modal
-    modalContent.appendChild(closeBtn)
-    modalContent.appendChild(startBtn)
     modal.appendChild(modalContent)
     document.body.appendChild(modal)
-    loadCss()
 
     // Open the modal
     modal.style.display = 'block'
+
+    const message = getLinkedInMessage(name, title, about)
 } 
 
 window.onload = function(event) {
@@ -230,6 +226,32 @@ window.onload = function(event) {
     const aboutExpression = "//section[starts-with(@id, 'ember')]//div//div//div//div//h2//span[contains(text(), 'About')]//ancestor::section[starts-with(@id, 'ember')]//div[3]//div//div//div//span[1]"
     const aboutData = document.evaluate(aboutExpression, document, null, XPathResult.ANY_TYPE, null)
     const about = aboutData.iterateNext() != null ? aboutData.iterateNext() : ''
+    
+    // Insert the generate message button on the page
+    const topCard = document.evaluate("//section[contains(@class, 'pv-top-card')]", document, null, XPathResult.ANY_TYPE, null).iterateNext()
+
+    const newSection = document.createElement('section')
+    newSection.className = 'artdeco-card ember-view relative break-words pb3 mt2 new_section'
+
+    // const newSectionIcon = document.createElement('img')
+    // newSectionIcon.src = './cc.png'
+    // newSectionIcon.className = 'icon'
+
+    const newSectionHeader = document.createElement('h2')
+    newSectionHeader.className = "pvs-header__title text-heading-large"
+    newSectionHeader.innerHTML = 'Tools'
+
+    var startBtn = document.createElement('button')
+    startBtn.textContent = 'Generate Message'
+    startBtn.className = 'btn'
+    startBtn.addEventListener('click', function() {
+        openModal(name, title, about)
+    })
+
+    // newSection.appendChild(newSectionIcon)
+    newSection.appendChild(newSectionHeader)
+    newSection.appendChild(startBtn)
+    topCard.parentNode.insertBefore(newSection, topCard.nextSibling)
 
     // Get the URL of the config file
     const configUrl = chrome.runtime.getURL('config/config.json');
@@ -244,7 +266,7 @@ window.onload = function(event) {
         // Access the desired variable from the config file
         openAIApiKey = config.openAIApiKey;
 
-        openModal(name, title, about)
+        loadCss()
     })
     .catch(error => {
         console.error('Error fetching config file:', error);
