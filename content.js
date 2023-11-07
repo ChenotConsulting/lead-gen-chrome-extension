@@ -66,6 +66,11 @@ function loadCss() {
     .btn:hover {
         background-color: #3e829a;
     }
+
+    button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
     
     .message {
         margin: 0 0 0 10px;
@@ -87,6 +92,12 @@ function loadCss() {
 }
 
 function updateModalContent(message) {
+    var copyBtn = document.getElementById('copy')
+    var msgBtn = document.getElementById('message')
+
+    copyBtn.removeAttribute('disabled')
+    msgBtn.removeAttribute('disabled')
+
     var contentElement = document.getElementById('content')
     contentElement.innerHTML = message
 }
@@ -163,13 +174,15 @@ function openModal(name, title, about) {
     })
 
     // Create the modal elements dynamically    
-    var content = document.createElement('p')
-    content.innerHTML = 'Generating message. Please wait a few seconds...';
+    var content = document.createElement('div')
+    content.innerHTML = '<p>Generating message. Please wait a few seconds...</p>';
     content.id = 'content'
 
     var copyBtn = document.createElement('button')
+    copyBtn.id = 'copy'
     copyBtn.textContent = 'Copy'
     copyBtn.className = 'btn'
+    copyBtn.setAttribute('disabled', '')
     copyBtn.addEventListener('click', function() {
         const contentElement = document.getElementById('content')
 
@@ -183,8 +196,10 @@ function openModal(name, title, about) {
     })
 
     var msgBtn = document.createElement('button')
+    msgBtn.id = 'message'
     msgBtn.textContent = 'Message'
     msgBtn.className = 'btn message'
+    msgBtn.setAttribute('disabled', '')
     msgBtn.addEventListener('click', function() {
         const messageButton = document.evaluate("//button[contains(@aria-label, 'Message')]", document, null, XPathResult.ANY_TYPE, null).iterateNext().click()
 
